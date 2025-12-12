@@ -23,10 +23,15 @@ app.get("/api/refresh-token", (req, res) => {
 
 app.post("/api/register", async (req, res) => {
   // validate using joi validate
-  // hash password using bcrypt
   const { first_name, last_name, email, phone, password } = req.body;
   if (!first_name || !last_name || !email || !phone || !password)
     return res.status(400).send("Body is required");
+  // check if user exists in db
+  const alreadyReg = await prisma.users.findUnique({ where: { email } });
+
+  if (alreadyReg) return res.status(400).send("User already registered");
+  // hash password using bcrypt
+  // exempt password using lodash
 
   // add user to db
   const user = await prisma.users.create({
@@ -38,7 +43,6 @@ app.post("/api/register", async (req, res) => {
       password_hash: password,
     },
   });
-  // exempt password using lodash
 
   res.send(`User created: ${user}`);
 });

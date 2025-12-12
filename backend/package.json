@@ -5,10 +5,10 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon --exec tsx src/index.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "mosnyik",
   "license": "ISC",
   "packageManager": "pnpm@10.23.0",
   "devDependencies": {
