@@ -1,4 +1,6 @@
-const express = require("express");
+import express from "express";
+import { prisma } from "./lib/prisma.js";
+
 
 const app = express();
 
@@ -21,16 +23,20 @@ app.get("/api/refresh-token", (req, res) => {
 });
 
 app.post("/api/register", (req, res) => {
-  
   // validate using joi validate
   if (!req.body) return res.status(400).send("Body is required");
   // hash password using bcrypt
   const { name, email, phone, password } = req.body;
 
+  // add user to db
+  prisma.users.create({
+    data: {
+      first_name: "Starter",
+    },
+  });
   // exempt password using lodash
 
   const user = { id: Date.now(), name, email, phone };
-  users.push(user);
 
   res.send("User created", user);
 });

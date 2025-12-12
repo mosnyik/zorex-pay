@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+model rates {
+  id                 BigInt   @id @default(autoincrement())
+  currency_from      String   @db.VarChar(20)
+  currency_to        String   @db.VarChar(20)
+  current_rate       Decimal  @db.Decimal(18, 4)
+  merchant_rate      Decimal  @db.Decimal(18, 4)
+  profit_rate        Decimal? @default(dbgenerated("(current_rate - merchant_rate)")) @db.Decimal(18, 4)
+  current_rate_used  Decimal? @db.Decimal(18, 4)
+  merchant_rate_used Decimal? @db.Decimal(18, 4)
+  profit_rate_used   Decimal? @db.Decimal(18, 4)
+  updated_at         DateTime @default(now()) @db.Timestamp(6)
+}
+
+model transactions {
+  id               BigInt   @id @default(autoincrement())
+  wallet_id        BigInt
+  amount           Decimal  @db.Decimal(18, 2)
+  type             String   @db.VarChar(30)
+  status           String   @default("pending") @db.VarChar(30)
+  previous_balance Decimal  @db.Decimal(18, 2)
+  new_balance      Decimal  @db.Decimal(18, 2)
+  reference        String   @unique @db.VarChar(100)
+  metadata         Json?
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  wallets          wallets  @relation(fields: [wallet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([reference], map: "idx_tx_reference")
+  @@index([status], map: "idx_tx_status")
+  @@index([type], map: "idx_tx_type")
+  @@index([wallet_id], map: "idx_tx_wallet")
+}
+
+model users {
+  id            BigInt    @id @default(autoincrement())
+  first_name    String    @db.VarChar(100)
+  last_name     String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(255)
+  phone         String    @unique @db.VarChar(50)
+  password_hash String
+  kyc_status    String    @default("unverified") @db.VarChar(50)
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  wallets       wallets[]
+}
+
+model wallets {
+  id           BigInt         @id @default(autoincrement())
+  user_id      BigInt
+  balance      Decimal        @default(0.00) @db.Decimal(18, 2)
+  currency     String         @db.VarChar(20)
+  type         String         @db.VarChar(50)
+  status       String         @default("active") @db.VarChar(20)
+  created_at   DateTime       @default(now()) @db.Timestamp(6)
+  transactions transactions[]
+  users        users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([currency], map: "idx_wallet_currency")
+  @@index([user_id], map: "idx_wallet_user")
+}
