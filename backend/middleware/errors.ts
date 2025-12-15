@@ -1,7 +1,11 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, RequestHandler, Response } from "express";
 
-const error = ( err: any, req: Request, res: Response, next: NextFunction)=>{
-
-}
-
-export default error;
+export default (handler: RequestHandler) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await handler(req, res, next);
+    } catch (ex) {
+      next(ex);
+    }
+  };
+};

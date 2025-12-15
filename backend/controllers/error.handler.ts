@@ -1,9 +1,10 @@
 import type { Response } from "express";
 import { ConflictError, ValidationError } from "../errors/domain.errors";
+import logger from "../logger";
 
 export const handleHttpError = (err: unknown, res: Response) => {
   if (err instanceof ValidationError) {
-    console.log({ err });
+    logger.http({ err });
     return res.status(400).json({
       success: false,
       data: null,
@@ -12,7 +13,7 @@ export const handleHttpError = (err: unknown, res: Response) => {
   }
 
   if (err instanceof ConflictError) {
-    console.log({ err });
+    logger.http({ err });
     return res.status(409).json({
       success: false,
       data: null,
@@ -20,6 +21,7 @@ export const handleHttpError = (err: unknown, res: Response) => {
     });
   }
 
+  logger.http({ err });
   return res.status(500).json({
     success: false,
     data: null,

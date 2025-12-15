@@ -12,7 +12,7 @@ export const registerUser = async (req: Request, res: Response) => {
       error: null,
     });
   } catch (err) {
-    console.log("There is an error");
+    // console.log("There is an error");
     return handleHttpError(err, res);
   }
 };

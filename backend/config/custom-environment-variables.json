@@ -1,0 +1,4 @@
+{
+  "name": "Zorex Pay",
+  "jwtPrivateKey": "zorex_pay_jwtPrivateKey"
+}
