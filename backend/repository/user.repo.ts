@@ -1,6 +1,5 @@
 import type { userPersistenceDto } from "../infrastructure/models";
 import { prisma } from "../lib/prisma";
-import type { userDomainDto } from "../models/user.model";
 
 export const UserRepo = {
   findByEmailOrPhone: (email: any, phone: any) => {
@@ -27,6 +26,18 @@ export const UserRepo = {
         email: true,
         phone: true,
         created_at: true,
+      },
+    });
+  },
+  saveToken: async (token: string, id: string) => {
+    const hr = 24 * 60 * 60 * 1000;
+    const now = new Date();
+    const expiry = new Date(now.getTime() + hr);
+    return prisma.refresh_tokens.create({
+      data: {
+        user_id: id,
+        token,
+        expires_at: expiry,
       },
     });
   },

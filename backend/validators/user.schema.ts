@@ -1,4 +1,3 @@
-// this is only concerned about the shape of the user data
 
 import z from "zod";
 

@@ -13,7 +13,7 @@ model rates {
   currency_to        String   @db.VarChar(20)
   current_rate       Decimal  @db.Decimal(18, 4)
   merchant_rate      Decimal  @db.Decimal(18, 4)
-   profit_rate        Decimal? @db.Decimal(18, 4) @default(dbgenerated()) @ignore
+  profit_rate        Decimal? @default(dbgenerated()) @ignore @db.Decimal(18, 4)
   current_rate_used  Decimal? @db.Decimal(18, 4)
   merchant_rate_used Decimal? @db.Decimal(18, 4)
   profit_rate_used   Decimal? @db.Decimal(18, 4)
@@ -40,15 +40,16 @@ model transactions {
 }
 
 model users {
-  id            String    @id @default(uuid())
-  first_name    String    @db.VarChar(100)
-  last_name     String    @db.VarChar(100)
-  email         String    @unique @db.VarChar(255)
-  phone         String    @unique @db.VarChar(50)
+  id            String           @id @default(uuid())
+  first_name    String           @db.VarChar(100)
+  last_name     String           @db.VarChar(100)
+  email         String           @unique @db.VarChar(255)
+  phone         String           @unique @db.VarChar(50)
   password_hash String
-  kyc_status    String    @default("unverified") @db.VarChar(50)
-  created_at    DateTime  @default(now()) @db.Timestamp(6)
+  kyc_status    String           @default("unverified") @db.VarChar(50)
+  created_at    DateTime         @default(now()) @db.Timestamp(6)
   wallets       wallets[]
+  tokens        refresh_tokens[]
 }
 
 model wallets {
@@ -64,4 +65,17 @@ model wallets {
 
   @@index([currency], map: "idx_wallet_currency")
   @@index([user_id], map: "idx_wallet_user")
+}
+
+model refresh_tokens {
+  id                String   @id @default(uuid())
+  user_id           String
+  token             String   @db.VarChar(255)
+  is_revoked        Boolean  @default(false)
+  created_at        DateTime @default(now()) @db.Timestamp(6)
+  expires_at        DateTime
+  replaced_by_token String?
+  users             users    @relation(fields: [user_id], references: [id])
+
+  @@index([token], map: "idx_token_tokens")
 }

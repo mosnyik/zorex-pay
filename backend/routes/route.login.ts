@@ -1,9 +1,8 @@
 import express, { Router } from "express";
+import { loginUser } from "../controllers/login.controller";
 
 const login: Router = express();
 
-login.post("/api/login", (req, res) => {
-  res.send("Login endpoint");
-});
+login.post("/", loginUser);
 
 export default login;
