@@ -2,9 +2,9 @@ import type { Request, Response } from "express";
 import { handleHttpError } from "./error.handler";
 import loginService from "../services/login.service";
 import logger from "../logger";
+import authService from "../services/auth.service";
 
 export const loginUser = async (req: Request, res: Response) => {
-  const isProd = process.env.NODE_ENV === "production";
   try {
     // log user in
     const {
@@ -14,19 +14,10 @@ export const loginUser = async (req: Request, res: Response) => {
     } = await loginService.login(req.body);
 
     // save accessToken to the cookies
-    res.cookie("x-auth-accessToken", accessToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
-      maxAge: 86400000,
-    });
+    authService.setAccessTokenCookie(res, accessToken!);
 
     // save refresh token to the cookies
-    res.cookie("x-auth-refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 86400000,
-    });
+    authService.setRefreshTokenCookie(res, refreshToken!);
 
     logger.debug("Saved cookies to header");
     return res.status(200).json({

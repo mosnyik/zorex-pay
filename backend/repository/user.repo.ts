@@ -7,6 +7,33 @@ export const UserRepo = {
       where: {
         OR: [{ email }, { phone }],
       },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        phone: true,
+        password_hash: true,
+        kyc_status: true,
+        created_at: true,
+      },
+    });
+  },
+  findById: async (id: any) => {
+    return await prisma.users.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        email: true,
+        phone: true,
+        password_hash: true,
+        kyc_status: true,
+        created_at: true,
+      },
     });
   },
 
