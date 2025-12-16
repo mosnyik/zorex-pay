@@ -7,9 +7,11 @@ export const loginUser = async (req: Request, res: Response) => {
   const isProd = process.env.NODE_ENV === "production";
   try {
     // log user in
-    const { accessToken, refreshToken, user } = await loginService.login(
-      req.body
-    );
+    const {
+      accessToken,
+      refreshToken,
+      cleanUser: user,
+    } = await loginService.login(req.body);
 
     // save accessToken to the cookies
     res.cookie("x-auth-accessToken", accessToken, {

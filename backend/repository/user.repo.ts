@@ -13,11 +13,11 @@ export const UserRepo = {
   create: async (data: userPersistenceDto) => {
     return prisma.users.create({
       data: {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-        phone: data.phone,
-        password_hash: data.hashed_password,
+        first_name: data.first_name!,
+        last_name: data.last_name!,
+        email: data.email!,
+        phone: data.phone!,
+        password_hash: data.hashed_password!,
       },
       select: {
         id: true,
