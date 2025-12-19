@@ -3,6 +3,7 @@ import express from "express";
 import register from "./routes/route.register";
 import login from "./routes/route.login";
 import refresh from "./routes/route.refresh";
+import revoke from "./routes/router.revoke";
 import logger from "./logger";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -14,6 +15,7 @@ app.use(cookieParser());
 app.use("/api/register", register);
 app.use("/api/login", login);
 app.use("/api/refresh", refresh);
+app.use("/api/revoke", revoke);
 
 app.use(
   cors({

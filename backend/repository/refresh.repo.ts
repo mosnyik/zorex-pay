@@ -7,14 +7,14 @@ export const RefreshRepo = {
     });
   },
 
-  inValidateRefreshToken: async (id: string, token: string) => {
+  inValidateRefreshToken: async (id_of_invalid_token: string, token_for_replacement: string) => {
     await prisma.refresh_tokens.update({
       where: {
-        id,
+        id: id_of_invalid_token,
       },
       data: {
         is_revoked: true,
-        replaced_by_token: token,
+        replaced_by_token: token_for_replacement,
       },
     });
   },

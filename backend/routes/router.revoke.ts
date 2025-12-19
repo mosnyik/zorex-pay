@@ -1,9 +1,8 @@
 import express, { Router } from "express";
+import { revokeUser } from "../controllers/revoke.controller";
 
 const revokeToken: Router = express();
 
-revokeToken.post("/api/revoke-token", (req, res) => {
-  res.send("Login endpoint");
-});
+revokeToken.post("/", revokeUser);
 
 export default revokeToken;

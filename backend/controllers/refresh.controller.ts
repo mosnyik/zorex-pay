@@ -13,8 +13,6 @@ const refreshUserToken = async (req: Request, res: Response) => {
     }catch(err){
       throw new RefreshTokenValidityError("Invalid token")
     }
-
-
     const { accessToken, refreshToken } = await refreshService.refresh(token);
 
     // set new accessToken in cookies

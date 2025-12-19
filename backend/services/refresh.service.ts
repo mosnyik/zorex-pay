@@ -1,10 +1,10 @@
+import { ValidationError } from "../errors/domain.errors";
 import logger from "../logger";
-import type { userDomainDto } from "../models/user.model";
 import { RefreshRepo } from "../repository/refresh.repo";
 import { UserRepo } from "../repository/user.repo";
 import authService from "./auth.service";
 
-type RefreshTokenShape = {
+export type RefreshTokenShape = {
   id: string;
   user_id: string;
   token: string;
@@ -24,12 +24,9 @@ const refresh = async (token: string) => {
   const user = await UserRepo.findById(fetchedRefreshToken?.user_id);
 
   if (fetchedRefreshToken?.is_revoked) {
-    logger.debug("This token is revoked");
-    return { accessToken, refreshToken };
+    throw new ValidationError("Invalid token");
   }
-  // logger.debug({ user });
 
-  // throw new AuthError("")
 
   accessToken = authService.generateAccessToken(user!);
   refreshToken = authService.generateRefreshToken(user!);
