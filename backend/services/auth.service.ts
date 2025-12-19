@@ -15,7 +15,6 @@ const HOUR = 60 * MUNITE;
 const isProd = process.env.NODE_ENV === "production";
 
 const generateAccessToken = (user: userDomainDto) => {
-  logger.debug({ user });
   const { id } = user;
 
   return jwt.sign({ id: id }, ACCESS_TOKEN_SECRET, { expiresIn: "5m" });

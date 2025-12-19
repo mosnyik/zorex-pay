@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma";
 
 export const RefreshRepo = {
-  validateRefreshToken: async (token: string) => {
+  fetchRefreshToken: async (token: string) => {
     return await prisma.refresh_tokens.findFirst({
       where: { token },
     });

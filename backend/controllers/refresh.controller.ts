@@ -2,12 +2,18 @@ import type { Request, Response } from "express";
 import authService from "../services/auth.service";
 import refreshService from "../services/refresh.service";
 import { handleHttpError } from "./error.handler";
+import { RefreshTokenValidityError } from "../errors/domain.errors";
 
 const refreshUserToken = async (req: Request, res: Response) => {
   try {
     const token = req.cookies.refreshToken;
+    try{
 
-    authService.verifyRefreshToken(token);
+      authService.verifyRefreshToken(token);
+    }catch(err){
+      throw new RefreshTokenValidityError("Invalid token")
+    }
+
 
     const { accessToken, refreshToken } = await refreshService.refresh(token);
 
