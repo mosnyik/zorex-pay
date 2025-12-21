@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { RefreshTokenValidityError } from "../errors/domain.errors";
-import authService from "../services/auth.service";
-import RevokeService from "../services/revoke.service";
-import { handleHttpError } from "./error.handler";
+import { RefreshTokenValidityError } from "../../errors/domain.errors";
+import authService from "../../services/auth/auth.service";
+import RevokeService from "../../services/auth/revoke.service";
+import { handleHttpError } from "../error.handler";
 
 export const revokeUser = async (req: Request, res: Response) => {
   try {

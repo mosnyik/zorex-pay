@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
 import _ from "lodash";
-import { LoginError } from "../errors/domain.errors";
-import logger from "../logger";
-import { UserRepo } from "../repository/user.repo";
+import { LoginError } from "../../errors/domain.errors";
+import logger from "../../logger";
+import { UserRepo } from "../../repository/user.repo";
 import {
   userLoginSchame,
   type userLoginDto,
-} from "../validators/user.login.schema";
+} from "../../validators/auth/user.login.schema";
 import authService from "./auth.service";
 
 const login = async (payload: userLoginDto) => {
@@ -39,7 +39,7 @@ const login = async (payload: userLoginDto) => {
       refreshToken = authService.generateRefreshToken(user);
     }
 
-   let cleanUser = _.omit(user, ["password_hash"]);
+    let cleanUser = _.omit(user, ["password_hash"]);
 
     return {
       accessToken,

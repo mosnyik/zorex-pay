@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import registerService from "../services/register.service";
-import { handleHttpError } from "./error.handler";
+import registerService from "../../services/auth/register.service";
+import { handleHttpError } from "../error.handler";
 
 // this would be concerned with executing the route and deligate the business logic to services
 export const registerUser = async (req: Request, res: Response) => {

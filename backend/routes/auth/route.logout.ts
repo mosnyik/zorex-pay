@@ -1,7 +1,7 @@
 import express, { Router } from "express";
-import { handleHttpError } from "../controllers/error.handler";
-import { RefreshRepo } from "../repository/refresh.repo";
-import RevokeService from "../services/revoke.service";
+import { handleHttpError } from "../../controllers/error.handler";
+import { RefreshRepo } from "../../repository/refresh.repo";
+import RevokeService from "../../services/auth/revoke.service";
 
 const logout: Router = express();
 

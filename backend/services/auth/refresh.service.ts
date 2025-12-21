@@ -1,7 +1,7 @@
-import { ValidationError } from "../errors/domain.errors";
-import logger from "../logger";
-import { RefreshRepo } from "../repository/refresh.repo";
-import { UserRepo } from "../repository/user.repo";
+import { ValidationError } from "../../errors/domain.errors";
+import logger from "../../logger";
+import { RefreshRepo } from "../../repository/refresh.repo";
+import { UserRepo } from "../../repository/user.repo";
 import authService from "./auth.service";
 
 export type RefreshTokenShape = {
@@ -26,7 +26,6 @@ const refresh = async (token: string) => {
   if (fetchedRefreshToken?.is_revoked) {
     throw new ValidationError("Invalid token");
   }
-
 
   accessToken = authService.generateAccessToken(user!);
   refreshToken = authService.generateRefreshToken(user!);

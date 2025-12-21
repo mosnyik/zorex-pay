@@ -1,4 +1,4 @@
-import { RefreshRepo } from "../repository/refresh.repo";
+import { RefreshRepo } from "../../repository/refresh.repo";
 import type { RefreshTokenShape } from "./refresh.service";
 
 const revoke = async (token_to_revoke: string) => {

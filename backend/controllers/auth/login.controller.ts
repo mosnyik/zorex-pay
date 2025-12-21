@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { handleHttpError } from "./error.handler";
-import loginService from "../services/login.service";
-import logger from "../logger";
-import authService from "../services/auth.service";
+import { handleHttpError } from "../error.handler";
+import loginService from "../../services/auth/login.service";
+import logger from "../../logger";
+import authService from "../../services/auth/auth.service";
 
 export const loginUser = async (req: Request, res: Response) => {
   try {

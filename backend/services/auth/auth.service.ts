@@ -1,9 +1,9 @@
 import type { Response } from "express";
-import type { userDomainDto } from "../models/user.model";
-import { UserRepo } from "../repository/user.repo";
+import type { userDomainDto } from "../../models/user.model";
+import { UserRepo } from "../../repository/user.repo";
 import jwt from "jsonwebtoken";
-import type { cookieOptions } from "../models/auth.model";
-import logger from "../logger";
+import type { cookieOptions } from "../../models/auth.model";
+import logger from "../../logger";
 
 const ACCESS_TOKEN_SECRET: string = "jwtPrivateKey";
 // config.get("jwtPrivateKey");

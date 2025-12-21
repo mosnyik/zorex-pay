@@ -1,11 +1,14 @@
-import { userSchame, type userInputDto } from "../validators/user.schema";
+import {
+  userSchame,
+  type userInputDto,
+} from "../../validators/auth/user.schema";
 import { fromZodError } from "zod-validation-error";
 import bcrypt from "bcrypt";
-import { prisma } from "../lib/prisma";
+import { prisma } from "../../lib/prisma";
 import _ from "lodash";
-import { UserRepo } from "../repository/user.repo";
-import { ConflictError, ValidationError } from "../errors/domain.errors";
-import type { userPersistenceDto } from "../infrastructure/models";
+import { UserRepo } from "../../repository/user.repo";
+import { ConflictError, ValidationError } from "../../errors/domain.errors";
+import type { userPersistenceDto } from "../../infrastructure/models";
 
 // this is the worker, he executes the work like business logic
 

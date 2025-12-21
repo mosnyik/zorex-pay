@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { revokeUser } from "../controllers/revoke.controller";
+import { revokeUser } from "../../controllers/auth/revoke.controller";
 
 const revokeToken: Router = express();
 
