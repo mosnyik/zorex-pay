@@ -1,5 +1,5 @@
-import type { userPersistenceDto } from "../infrastructure/models";
 import { prisma } from "../lib/prisma";
+import type { userPersistenceDto } from "../models/user.model";
 
 export const UserRepo = {
   findByEmailOrPhone: (email: any, phone: any) => {
@@ -11,6 +11,7 @@ export const UserRepo = {
         id: true,
         first_name: true,
         last_name: true,
+        user_name: true,
         email: true,
         phone: true,
         password_hash: true,
@@ -42,9 +43,10 @@ export const UserRepo = {
       data: {
         first_name: data.first_name!,
         last_name: data.last_name!,
+        user_name: data.user_name,
         email: data.email!,
         phone: data.phone!,
-        password_hash: data.hashed_password!,
+        password_hash: data.password_hash!,
       },
       select: {
         id: true,

@@ -10,6 +10,10 @@ export const userSchame = z.object({
     .string()
     .min(3, "Last Name must be atleast 3 characters")
     .max(50, "Last Name must not be more than 50 characters"),
+  user_name: z
+    .string()
+    .min(3, "User Name must be atleast 3 characters")
+    .max(50, "User Name must not be more than 50 characters"),
   email: z.email("Please provide a valid email"),
   phone: z
     .string()

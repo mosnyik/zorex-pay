@@ -8,7 +8,7 @@ import { prisma } from "../../lib/prisma";
 import _ from "lodash";
 import { UserRepo } from "../../repository/user.repo";
 import { ConflictError, ValidationError } from "../../errors/domain.errors";
-import type { userPersistenceDto } from "../../infrastructure/models";
+import type { userPersistenceDto } from "../../models/user.model";
 
 // this is the worker, he executes the work like business logic
 
@@ -23,11 +23,11 @@ const register = async (payload: userInputDto) => {
     throw new ValidationError("Invalid user");
   }
 
-  const { email, phone, password } = payload;
+  const { email, user_name, phone, password } = payload;
 
   // check if user exists in db
   const alreadyReg = await prisma.users.findFirst({
-    where: { OR: [{ email }, { phone }] },
+    where: { OR: [{ email }, { phone }, {user_name}] },
   });
 
   if (alreadyReg)
@@ -39,7 +39,7 @@ const register = async (payload: userInputDto) => {
 
   let userPayload: userPersistenceDto = {
     ...payload,
-    hashed_password: hashed_password,
+    password_hash: hashed_password,
   };
 
   const cleanPayload = _.omit(userPayload, ["password"]) as userPersistenceDto;

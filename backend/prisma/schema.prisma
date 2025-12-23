@@ -7,7 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-enum CurrencyType {
+enum currency_type {
   NGN
   USDT
   BTC
@@ -16,105 +16,157 @@ enum CurrencyType {
   TRX
 }
 
-enum TransactionType {
-  FUNDING // user pay into their account
-  PAYOUT // user withdraw money to an external account - bank/crypto wallet
-  TRANSFER // internal transfer from one wallet type to another or from one user to another
-  PAYMENT // using wallet balance to pay for a service or 
+enum network_type {
+  BANK
+  TRC20
+  BEP20
+  POLYGON
+  ERC20
+  BTC
 }
 
-enum TransactionStaus {
+enum wallet_status {
+  ACTIVE
+  FROZEN
+}
+
+enum transaction_type {
+  FUNDING  // user pay into their account (EXTERNAL → WALLET)
+  PAYOUT   // user withdraw money to an external account - bank/crypto wallet (WALLET  → EXTERNAL)
+  TRANSFER // internal transfer from one wallet type to another or from one user to another (WALLET  → WALLET)
+  PAYMENT  // using wallet balance to pay for a service or (WALLET  → SERVICE/MERCHANT)
+}
+
+enum transaction_staus {
   PENDING // waiting for confirmation - crypto confirmation/bank approval
   COMPLETED
   FAILED
   REVERSED // payment was undone after completion
 }
 
-enum TransferAction {
-  WITHDRAW
-  DEPOSIT
-  TRANSFER
+enum ledger_direction {
+  DEBIT
+  CREDIT
 }
 
-enum WalletStatus {
-  ACTIVE
-  FROZEN
+enum ledger_account_type {
+  USER // user owned wallet account
+  SYSTEM // platform clearing
+  FEE // fee revenue
+  SETTLEMENT // bank/crypto settlement
 }
 
-model rates {
-  id                 String   @id @default(uuid())
-  currency_from      String   @db.VarChar(20)
-  currency_to        String   @db.VarChar(20)
-  current_rate       Decimal  @db.Decimal(18, 4)
-  merchant_rate      Decimal  @db.Decimal(18, 4)
-  profit_rate        Decimal? @default(dbgenerated()) @ignore @db.Decimal(18, 4)
-  current_rate_used  Decimal? @db.Decimal(18, 4)
-  merchant_rate_used Decimal? @db.Decimal(18, 4)
-  profit_rate_used   Decimal? @db.Decimal(18, 4)
-  updated_at         DateTime @default(now()) @db.Timestamp(6)
+enum kyc_status {
+  UNVERFIED
+  PENDING
+  VERIFIED
 }
 
-model transactions {
-  id               String           @id @default(uuid())
-  wallet_id        String
-  amount           Decimal          @db.Decimal(18, 7)
-  type             CurrencyType
-  status           TransactionStaus @default(PENDING)
-  action           TransferAction
-  previous_balance Decimal          @db.Decimal(18, 7)
-  new_balance      Decimal          @db.Decimal(18, 7)
-  reference        String           @unique @db.VarChar(100)
-  metadata         Json?
-  created_at       DateTime         @default(now()) @db.Timestamp(6)
-  wallets          wallets          @relation(fields: [wallet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model refresh_tokens {
+  id              String   @id @default(uuid())
+  user_id          String
+  token           String   @db.VarChar(255)
+  is_revoked       Boolean  @default(false)
+  created_at       DateTime @default(now()) @db.Timestamp(6)
+  expires_at       DateTime
+  replaced_by_token String?  @db.VarChar(255)
+  users           users     @relation(fields: [user_id], references: [id])
 
-  @@index([reference], map: "idx_tx_reference")
-  @@index([status], map: "idx_tx_status")
-  @@index([type], map: "idx_tx_type")
-  @@index([wallet_id], map: "idx_tx_wallet")
+  @@index([token], map: "idx_token_tokens")
 }
 
 model users {
-  id             String           @id @default(uuid())
-  first_name     String           @db.VarChar(100)
-  last_name      String           @db.VarChar(100)
-  user_name      String           @unique @db.VarChar(50)
-  account_number String?          @db.VarChar(10)
-  email          String           @unique @db.VarChar(255)
-  phone          String           @unique @db.VarChar(50)
-  password_hash  String
-  kyc_status     String           @default("unverified") @db.VarChar(50)
-  created_at     DateTime         @default(now()) @db.Timestamp(6)
-  wallets        wallets[]
-  tokens         refresh_tokens[]
+  id           String    @id @default(uuid())
+  first_name    String    @db.VarChar(100)
+  last_name     String    @db.VarChar(100)
+  user_name     String    @unique @db.VarChar(50)
+  email        String    @unique @db.VarChar(255)
+  phone        String    @unique @db.VarChar(50)
+  password_hash String
+  kyc_status    kyc_status @default(UNVERFIED)
+  created_at    DateTime  @default(now()) @db.Timestamp(6)
+
+  wallets wallets[]
+  tokens  refresh_tokens[]
 }
 
 model wallets {
-  id             String         @id @default(uuid())
-  user_id        String
-  balance        Decimal        @default(0.00) @db.Decimal(18, 7)
-  currency       String         @db.VarChar(20)
-  type           CurrencyType
-  wallet_address String?        @unique @db.VarChar(100)
-  status         WalletStatus   @default(ACTIVE)
-  created_at     DateTime       @default(now()) @db.Timestamp(6)
-  transactions   transactions[]
-  users          users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id        String       @id @default(uuid())
+  user_id    String
+  currency  currency_type
+  status    wallet_status @default(ACTIVE)
+  created_at DateTime     @default(now()) @db.Timestamp(6)
 
-  @@unique([user_id, type])
+  users users @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  accounts payment_accounts[]
+  ledger   ledger_accounts[]
+
+  @@unique([user_id, currency])
   @@index([currency], map: "idx_wallet_currency")
   @@index([user_id], map: "idx_wallet_user")
 }
 
-model refresh_tokens {
-  id                String   @id @default(uuid())
-  user_id           String
-  token             String   @db.VarChar(255)
-  is_revoked        Boolean  @default(false)
-  created_at        DateTime @default(now()) @db.Timestamp(6)
-  expires_at        DateTime
-  replaced_by_token String?
-  users             users    @relation(fields: [user_id], references: [id])
+model payment_accounts {
+  id         String      @id @default(uuid())
+  wallet_id   String
+  network    network_type
+  identifier String // bank account number or crypto address
+  provider   String? // paystack, flutterwave, stripe, binanace etc
+  is_active   Boolean     @default(true)
+  created_at  DateTime    @default(now())
 
-  @@index([token], map: "idx_token_tokens")
+  wallets wallets @relation(fields: [wallet_id], references: [id])
+
+  @@unique([network, identifier])
+}
+
+model ledger_accounts {
+  id        String       @id @default(uuid())
+  wallet_id  String
+  currency  currency_type
+  created_at DateTime     @default(now())
+
+  wallets wallets        @relation(fields: [wallet_id], references: [id])
+  entries ledger_entries[]
+}
+
+model transactions {
+  id        String           @id @default(uuid())
+  type      transaction_type
+  status    transaction_staus @default(PENDING)
+  reference String           @unique @db.VarChar(100)
+  metadata  Json?
+  created_at DateTime         @default(now()) @db.Timestamp(6)
+
+  entries ledger_entries[]
+
+  @@index([reference], map: "idx_tx_reference")
+  @@index([status], map: "idx_tx_status")
+  @@index([type], map: "idx_tx_type")
+}
+
+model ledger_entries {
+  id              String          @id @default(uuid())
+  transaction_id   String
+  ledger_account_id String
+  direction       ledger_direction
+  amount          Decimal         @db.Decimal(18, 7)
+  created_at      DateTime        @default(now())
+
+  transaction    transactions   @relation(fields: [transaction_id], references: [id])
+  ledger_account ledger_accounts @relation(fields: [ledger_account_id], references: [id])
+}
+
+model rates {
+  id               String   @id @default(uuid())
+  currency_from     String   @db.VarChar(20)
+  currency_to       String   @db.VarChar(20)
+  current_rate      Decimal  @db.Decimal(18, 7)
+  merchant_rate     Decimal  @db.Decimal(18, 7)
+  profit_rate       Decimal? @default(dbgenerated()) @ignore @db.Decimal(18, 7)
+  current_rate_used  Decimal? @db.Decimal(18, 7)
+  merchant_rate_used Decimal? @db.Decimal(18, 7)
+  profit_rate_used   Decimal? @db.Decimal(18, 7)
+  updated_at        DateTime @updatedAt
 }
