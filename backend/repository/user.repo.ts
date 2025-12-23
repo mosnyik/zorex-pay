@@ -39,23 +39,33 @@ export const UserRepo = {
   },
 
   create: async (data: userPersistenceDto) => {
-    return prisma.users.create({
-      data: {
-        first_name: data.first_name!,
-        last_name: data.last_name!,
-        user_name: data.user_name,
-        email: data.email!,
-        phone: data.phone!,
-        password_hash: data.password_hash!,
-      },
-      select: {
-        id: true,
-        first_name: true,
-        last_name: true,
-        email: true,
-        phone: true,
-        created_at: true,
-      },
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.users.create({
+        data: {
+          first_name: data.first_name!,
+          last_name: data.last_name!,
+          user_name: data.user_name,
+          email: data.email!,
+          phone: data.phone!,
+          password_hash: data.password_hash!,
+        },
+        select: {
+          id: true,
+          first_name: true,
+          last_name: true,
+          email: true,
+          phone: true,
+          created_at: true,
+        },
+      });
+      await tx.wallets.create({
+        data: {
+          user_id: user.id,
+          status: "ACTIVE",
+          currency: "NGN",
+        },
+      });
+      return user;
     });
   },
   saveToken: async (token: string, id: string) => {
