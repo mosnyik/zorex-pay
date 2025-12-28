@@ -1,9 +1,4 @@
-export interface walletPersistenceDto {
-  userId: string;
-  currency: "NGN" | "USDT" | "BTC" | "ETH" | "BNB" | "TRX";
-  status: "ACTIVE" | "FROZEN";
-  createdAt: Date;
-}
+
 
 export interface transactionPersistenceDto {
   type: "FUNDING" | "PAYOUT" | "TRANSFER" | "PAYMENT";

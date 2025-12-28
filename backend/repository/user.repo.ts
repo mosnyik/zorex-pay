@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma";
 import type { userPersistenceDto } from "../models/user.model";
+import { WalletRepo } from "./wallet.repo";
 
 export const UserRepo = {
   findByEmailOrPhone: (email: any, phone: any) => {
@@ -53,21 +54,24 @@ export const UserRepo = {
           id: true,
           first_name: true,
           last_name: true,
+          user_name: true,
           email: true,
           phone: true,
           created_at: true,
         },
       });
-      await tx.wallets.create({
-        data: {
-          user_id: user.id,
-          status: "ACTIVE",
-          currency: "NGN",
-        },
-      });
+
+      await WalletRepo.createWallet({
+        user_id: user.id,
+        currency: "NGN",
+        status: "ACTIVE",
+      },
+      tx
+    );
       return user;
     });
   },
+
   saveToken: async (token: string, id: string) => {
     const hr = 24 * 60 * 60 * 1000;
     const now = new Date();
