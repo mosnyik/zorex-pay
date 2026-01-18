@@ -3,10 +3,28 @@ import { prisma } from "../lib/prisma";
 import type { walletPersistenceDto } from "../models/transaction/wallet.model";
 
 type DbClient = Prisma.TransactionClient | PrismaClient;
-
+type Network = "BANK" | "BEP20" | "POLYGON" | "BTC" | "ERC20" | "TRC20";
 
 export const WalletRepo = {
-  createWallet: async ( data: walletPersistenceDto, tx?: DbClient,) => {
+  resolveWalletFromBankAccount: async (accountID: string, network: Network) => {
+    const paymentAccount = await prisma.payment_accounts.findFirst({
+      where: {
+        identifier: accountID,
+        network,
+        is_active: true,
+      },
+      include: {
+        wallets: true,
+      },
+    });
+
+    if (!paymentAccount) {
+      throw new Error("Unknown bank account/wallet");
+    }
+
+    return paymentAccount.wallets;
+  },
+  createWallet: async (data: walletPersistenceDto, tx?: DbClient) => {
     const client = tx || prisma;
     // check if user already has a wallet
     const existingWallet = await client.wallets.findFirst({
@@ -48,82 +66,69 @@ export const WalletRepo = {
       },
     });
   },
-  // addFundsFromExternalSource: async (
-  //   reference,
-  //   metadata,
-  //   currency,
-  //   user_id,
-  //   amount
-  // ) => {
-  //   await prisma.$transaction(async (tx) => {
-  //     // create a transaction for the user
-  //     const transaction = await tx.transactions.create({
-  //       data: {
-  //         type: "FUNDING",
-  //         status: "PENDING",
-  //         reference,
-  //         metadata,
-  //       },
-  //       select: {
-  //         id: true,
-  //         type: true,
-  //         status: true,
-  //         reference: true,
-  //         metadata: true,
-  //         created_at: true,
-  //       },
-  //     });
 
-  //     const ledgerAccount = await tx.ledger_accounts.create({
-  //       data: {
-  //         wallet_id: "wow",
-  //         currency: currency,
-  //       },
-  //       select: {
-  //         id: true,
-  //         wallet_id: true,
-  //         currency: true,
-  //         created_at: true,
-  //       },
-  //     });
+  createLegerDebitEntry: async (entry: {
+    refrence: string;
+    metadata: string;
+    currency: "NGN" | "USDT" | "BTC" | "ETH" | "BNB" | "TRX";
+    wallet_id: string;
+    amount: string;
+    type: "FUNDING" | "PAYOUT" | "TRANSFER" | "PAYMENT";
+  }) => {
+    await prisma.$transaction(async (tx) => {
+      // create a transaction for the user
+      const transaction = await tx.transactions.create({
+        data: {
+          type: entry.type,
+          status: "COMPLETED",
+          reference: entry.refrence,
+          metadata: entry.metadata,
+        },
+        select: {
+          id: true,
+          type: true,
+          status: true,
+          reference: true,
+          metadata: true,
+          created_at: true,
+        },
+      });
 
-  //     // create a ledger entry for recieving user
-  //     await tx.ledger_entries.create({
-  //       data: {
-  //         transaction_id: transaction.id,
-  //         ledger_account_id: ledgerAccount.id,
-  //         direction: "CREDIT",
-  //         amount: amount,
-  //       },
-  //       select: {
-  //         id: true,
-  //         transaction_id: true,
-  //         ledger_account_id: true,
-  //         direction: true,
-  //         amount: true,
-  //         created_at: true,
-  //       },
-  //     });
+      const ledgerAccount = await tx.ledger_accounts.create({
+        data: {
+          wallet_id: entry.wallet_id,
+          currency: entry.currency,
+        },
+        select: {
+          id: true,
+          wallet_id: true,
+          currency: true,
+          created_at: true,
+        },
+      });
 
-  //     await prisma.$transaction(async (tx) => {
-  //       await tx.transactions.update({
-  //         where: {
-  //           id: transaction.id,
-  //         },
-  //         data: {
-  //           status: "COMPLETED",
-  //         },
-  //       });
-  //     });
-  //     // mark transactions as settled/ reversed/canceled based on result
-  //   });
-  // },
-  transferFundsToExternalSource: async () => {
-    //
+      // create a ledger entry for recieving user
+      await tx.ledger_entries.create({
+        data: {
+          transaction_id: transaction.id,
+          ledger_account_id: ledgerAccount.id,
+          direction: "DEBIT",
+          amount: entry.amount,
+        },
+        select: {
+          id: true,
+          transaction_id: true,
+          ledger_account_id: true,
+          direction: true,
+          amount: true,
+          created_at: true,
+        },
+      });
+    });
   },
-  createInternalTransfer: async () => {},
 
   createLedgerCreditEntry: async (entry: {
+    userId: string;
     refrence: string;
     metadata: string;
     currency: "NGN" | "USDT" | "BTC" | "ETH" | "BNB" | "TRX";
@@ -181,6 +186,4 @@ export const WalletRepo = {
       });
     });
   },
-
-  createLegerDebitEntry: async () => {},
 };

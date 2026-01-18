@@ -29,6 +29,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
+    "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "config": "^4.1.1",
     "cookie-parser": "^1.4.7",
@@ -38,6 +39,7 @@
     "jsonwebtoken": "^9.0.3",
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
+    "uuid": "^13.0.0",
     "winston": "^3.19.0",
     "zod": "^4.1.13",
     "zod-validation-error": "^5.0.0"

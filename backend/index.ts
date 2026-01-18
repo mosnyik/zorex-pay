@@ -5,6 +5,8 @@ import login from "./routes/auth/route.login";
 import refresh from "./routes/auth/route.refresh";
 import revoke from "./routes/auth/route.revoke";
 import logout from "./routes/auth/route.logout";
+import fundBank from "./routes/funding/route.fund.bank";
+import paystack from "./routes/webhooks/route.paystack";
 import logger from "./logger";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -18,6 +20,8 @@ app.use("/api/login", login);
 app.use("/api/refresh", refresh);
 app.use("/api/revoke", revoke);
 app.use("/api/logout", logout);
+app.use("/api/fund-bank", fundBank);
+app.use("/api/webhooks", paystack);
 
 app.use(
   cors({
