@@ -27,7 +27,7 @@ including idempotency, auditability, and failure handling.
 ---
 
 ## Architecture Overview
-
+```plaintext
 Frontend (Web App)
 |
 v
@@ -46,7 +46,7 @@ Bank APIs
 
 Blockchain Networks
 
-
+```
 
 - The **backend** owns all financial logic and accounting
 - The **frontend** consumes the API and handles user interaction

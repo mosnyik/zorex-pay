@@ -36,7 +36,7 @@ All financial rules are enforced exclusively by the backend.
 ---
 
 ## Architecture Overview
-
+```plaintext
 UI Components
 |
 State / API Layer
@@ -44,7 +44,7 @@ State / API Layer
 REST API (Backend)
 |
 Ledger & Transactions
-
+```
 
 The frontend communicates with the backend **only via HTTP APIs** and treats the backend
 as the single source of truth.
