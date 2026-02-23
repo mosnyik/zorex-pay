@@ -20,7 +20,17 @@ All authenticated endpoints require JWT tokens sent via httpOnly cookies.
 {
   "success": false,
   "data": null,
-  "error": "Unauthorized"
+  "error": "Authentication required"
+}
+```
+
+**Token Expired Response:**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": "Token expired",
+  "code": "TOKEN_EXPIRED"
 }
 ```
 
@@ -62,19 +72,19 @@ interface ApiResponse<T> {
 
 ### Authentication
 
-#### POST /auth/register
+#### POST /register
 
 Create a new user account. Automatically creates an NGN wallet.
 
 **Request:**
 ```json
 {
-  "firstName": "John",
-  "lastName": "Doe",
-  "userName": "johndoe",
+  "first_name": "John",
+  "last_name": "Doe",
+  "user_name": "johndoe",
   "email": "john@example.com",
-  "phone": "+2348012345678",
-  "password": "SecurePass123!"
+  "phone": "08012345678",
+  "password": "SecurePass123"
 }
 ```
 
@@ -84,14 +94,12 @@ Create a new user account. Automatically creates an NGN wallet.
   "success": true,
   "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "firstName": "John",
-    "lastName": "Doe",
-    "userName": "johndoe",
+    "first_name": "John",
+    "last_name": "Doe",
+    "user_name": "johndoe",
     "email": "john@example.com",
-    "phone": "+2348012345678",
-    "role": "USER",
-    "kycStatus": "UNVERIFIED",
-    "createdAt": "2024-01-15T10:30:00Z"
+    "phone": "08012345678",
+    "created_at": "2024-01-15T10:30:00Z"
   },
   "error": null
 }
@@ -103,7 +111,7 @@ Create a new user account. Automatically creates an NGN wallet.
 
 ---
 
-#### POST /auth/login
+#### POST /login
 
 Authenticate user and receive tokens.
 
@@ -111,7 +119,7 @@ Authenticate user and receive tokens.
 ```json
 {
   "email": "john@example.com",
-  "password": "SecurePass123!"
+  "password": "SecurePass123"
 }
 ```
 
@@ -120,13 +128,15 @@ Authenticate user and receive tokens.
 {
   "success": true,
   "data": {
-    "user": {
-      "id": "550e8400-e29b-41d4-a716-446655440000",
-      "firstName": "John",
-      "lastName": "Doe",
-      "email": "john@example.com",
-      "role": "USER"
-    }
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "first_name": "John",
+    "last_name": "Doe",
+    "user_name": "johndoe",
+    "email": "john@example.com",
+    "phone": "08012345678",
+    "role": "USER",
+    "kyc_status": "UNVERFIED",
+    "created_at": "2024-01-15T10:30:00Z"
   },
   "error": null
 }
@@ -141,7 +151,7 @@ Authenticate user and receive tokens.
 
 ---
 
-#### POST /auth/refresh
+#### POST /refresh
 
 Refresh access token using refresh token.
 
@@ -162,16 +172,11 @@ Refresh access token using refresh token.
 - New `accessToken`
 - New `refreshToken` (old one invalidated)
 
-**Errors:**
-- `400` - Invalid or expired refresh token
-
 ---
 
-#### POST /auth/revoke
+#### POST /revoke
 
 Revoke refresh token (logout from specific device).
-
-**Request:** No body required
 
 **Response (200):**
 ```json
@@ -186,11 +191,9 @@ Revoke refresh token (logout from specific device).
 
 ---
 
-#### POST /auth/logout
+#### POST /logout
 
 Clear all session cookies.
-
-**Request:** No body required
 
 **Response (200):**
 ```json
@@ -254,6 +257,8 @@ Create a new wallet for a different currency.
 }
 ```
 
+**Valid Currencies:** `NGN`, `USDT`, `BTC`, `ETH`, `BNB`, `TRX`
+
 **Response (201):**
 ```json
 {
@@ -287,15 +292,15 @@ Get specific wallet details.
   "success": true,
   "data": {
     "id": "wallet-uuid",
-    "currency": "NGN",
+    "currency": "USDT",
     "status": "ACTIVE",
-    "balance": "150000.00",
+    "balance": "500.00",
     "paymentAccounts": [
       {
         "id": "account-uuid",
-        "network": "BANK",
-        "identifier": "1234567890",
-        "provider": "PAYSTACK",
+        "network": "TRC20",
+        "identifier": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+        "provider": "NOWPAYMENTS",
         "isActive": true
       }
     ],
@@ -305,46 +310,22 @@ Get specific wallet details.
 }
 ```
 
-**Errors:**
-- `404` - Wallet not found
-
 ---
 
-#### GET /wallets/:walletId/transactions
+#### GET /wallets/:walletId/balance
 
-Get transaction history for a wallet.
+Get wallet balance.
 
 **Auth Required:** Yes
-
-**Query Parameters:**
-- `page` (default: 1)
-- `limit` (default: 20, max: 100)
-- `type` (optional): FUNDING, PAYOUT, TRANSFER, PAYMENT
-- `status` (optional): PENDING, COMPLETED, FAILED, REVERSED
 
 **Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "transactions": [
-      {
-        "id": "tx-uuid",
-        "type": "FUNDING",
-        "status": "COMPLETED",
-        "reference": "zorex_abc123",
-        "direction": "CREDIT",
-        "amount": "10000.00",
-        "currency": "NGN",
-        "createdAt": "2024-01-15T10:30:00Z"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 45,
-      "totalPages": 3
-    }
+    "walletId": "wallet-uuid",
+    "balance": "500.00",
+    "currency": "USDT"
   },
   "error": null
 }
@@ -352,9 +333,97 @@ Get transaction history for a wallet.
 
 ---
 
-### Funding
+#### GET /wallets/networks/:currency
 
-#### POST /funding/bank
+Get valid networks for a currency.
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "currency": "USDT",
+    "networks": ["TRC20", "BEP20", "ERC20", "POLYGON"]
+  },
+  "error": null
+}
+```
+
+**Network Mapping:**
+| Currency | Networks |
+|----------|----------|
+| USDT | TRC20, BEP20, ERC20, POLYGON |
+| BTC | BTC |
+| ETH | ERC20 |
+| BNB | BEP20 |
+| TRX | TRC20 |
+| NGN | BANK |
+
+---
+
+#### GET /wallets/:walletId/deposit-address
+
+Get or create crypto deposit address.
+
+**Auth Required:** Yes
+
+**Query Parameters:**
+- `network` (required): TRC20, BEP20, ERC20, BTC, POLYGON
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "address": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+    "network": "TRC20",
+    "currency": "USDT",
+    "minimumDeposit": 10,
+    "confirmationsRequired": 20,
+    "isNew": false,
+    "transactionId": "tx-uuid"
+  },
+  "error": null
+}
+```
+
+---
+
+#### GET /wallets/:walletId/deposit-addresses
+
+Get all deposit addresses for a wallet.
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "addresses": [
+      {
+        "network": "TRC20",
+        "address": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
+        "createdAt": "2024-01-15T10:30:00Z"
+      },
+      {
+        "network": "BEP20",
+        "address": "0x1234567890abcdef1234567890abcdef12345678",
+        "createdAt": "2024-01-16T14:00:00Z"
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+---
+
+### Funding (NGN)
+
+#### POST /fund-bank
 
 Initialize NGN funding via Paystack.
 
@@ -363,7 +432,6 @@ Initialize NGN funding via Paystack.
 **Request:**
 ```json
 {
-  "walletId": "wallet-uuid",
   "amount": 10000
 }
 ```
@@ -381,127 +449,13 @@ Initialize NGN funding via Paystack.
 }
 ```
 
-**Errors:**
-- `400` - Invalid wallet or amount
-- `404` - Wallet not found
-
 ---
 
-#### GET /funding/crypto/address
+### Withdrawals (Crypto)
 
-Get or generate crypto deposit address.
+#### POST /withdraw/crypto/estimate
 
-**Auth Required:** Yes
-
-**Query Parameters:**
-- `walletId` (required)
-- `network` (required): TRC20, BEP20, ERC20, BTC, POLYGON
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "address": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
-    "network": "TRC20",
-    "currency": "USDT",
-    "minimumDeposit": "10.00",
-    "confirmationsRequired": 20
-  },
-  "error": null
-}
-```
-
-**Errors:**
-- `400` - Invalid network or currency combination
-
----
-
-### Transfers
-
-#### POST /transfers
-
-Transfer funds between wallets (internal).
-
-**Auth Required:** Yes
-
-**Request:**
-```json
-{
-  "fromWalletId": "sender-wallet-uuid",
-  "toWalletId": "recipient-wallet-uuid",
-  "amount": 5000,
-  "note": "Payment for services"
-}
-```
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "transactionId": "tx-uuid",
-    "reference": "zorex_transfer_abc123",
-    "status": "COMPLETED",
-    "amount": "5000.00",
-    "fee": "0.00",
-    "createdAt": "2024-01-15T10:30:00Z"
-  },
-  "error": null
-}
-```
-
-**Errors:**
-- `400` - Insufficient balance
-- `400` - Same wallet transfer not allowed
-- `400` - Currency mismatch
-- `404` - Wallet not found
-
----
-
-#### POST /transfers/username
-
-Transfer to another user by username.
-
-**Auth Required:** Yes
-
-**Request:**
-```json
-{
-  "fromWalletId": "sender-wallet-uuid",
-  "recipientUsername": "janedoe",
-  "currency": "NGN",
-  "amount": 5000,
-  "note": "Split bill"
-}
-```
-
-**Response (201):**
-```json
-{
-  "success": true,
-  "data": {
-    "transactionId": "tx-uuid",
-    "reference": "zorex_transfer_abc123",
-    "status": "COMPLETED",
-    "recipient": {
-      "userName": "janedoe",
-      "firstName": "Jane"
-    },
-    "amount": "5000.00",
-    "fee": "0.00"
-  },
-  "error": null
-}
-```
-
----
-
-### Payouts
-
-#### POST /payouts/bank
-
-Withdraw NGN to bank account.
+Get withdrawal fee estimate.
 
 **Auth Required:** Yes
 
@@ -509,38 +463,41 @@ Withdraw NGN to bank account.
 ```json
 {
   "walletId": "wallet-uuid",
-  "amount": 50000,
-  "bankCode": "058",
-  "accountNumber": "1234567890",
-  "accountName": "John Doe"
+  "amount": 100,
+  "network": "TRC20"
 }
 ```
 
-**Response (201):**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "transactionId": "tx-uuid",
-    "reference": "zorex_payout_abc123",
-    "status": "PENDING",
-    "amount": "50000.00",
-    "fee": "50.00",
-    "estimatedArrival": "2024-01-15T12:00:00Z"
+    "amount": 100,
+    "fee": 1,
+    "totalDeducted": 101,
+    "minAmount": 20,
+    "currency": "USDT",
+    "network": "TRC20"
   },
   "error": null
 }
 ```
 
-**Errors:**
-- `400` - Insufficient balance
-- `400` - Invalid bank details
+**Withdrawal Fees:**
+| Network | Fee |
+|---------|-----|
+| TRC20 | 1 USDT |
+| BEP20 | 0.5 USDT |
+| ERC20 | 10 USDT |
+| POLYGON | 0.5 USDT |
+| BTC | 0.0001 BTC |
 
 ---
 
-#### POST /payouts/crypto
+#### POST /withdraw/crypto
 
-Withdraw crypto to external wallet.
+Initiate crypto withdrawal.
 
 **Auth Required:** Yes
 
@@ -560,12 +517,116 @@ Withdraw crypto to external wallet.
   "success": true,
   "data": {
     "transactionId": "tx-uuid",
-    "reference": "zorex_crypto_payout_abc123",
-    "status": "PENDING",
-    "amount": "100.00",
-    "fee": "1.00",
+    "reference": "WD-550e8400-e29b-41d4",
+    "amount": 100,
+    "fee": 1,
+    "totalDeducted": 101,
+    "address": "TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE",
     "network": "TRC20",
-    "estimatedConfirmations": 20
+    "status": "PENDING",
+    "estimatedTime": "5-30 minutes"
+  },
+  "error": null
+}
+```
+
+**Errors:**
+- `400` - Insufficient balance
+- `400` - Below minimum amount
+- `400` - Invalid address format
+
+---
+
+#### GET /withdraw/crypto/pending
+
+Get pending withdrawals.
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "tx-uuid",
+      "reference": "WD-550e8400-e29b-41d4",
+      "amount": 100,
+      "fee": 1,
+      "address": "TQn9Y2...",
+      "network": "TRC20",
+      "status": "PENDING",
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "error": null
+}
+```
+
+---
+
+#### POST /withdraw/crypto/:transactionId/cancel
+
+Cancel a pending withdrawal.
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "success": true,
+    "message": "Withdrawal cancelled and funds returned"
+  },
+  "error": null
+}
+```
+
+**Errors:**
+- `404` - Pending withdrawal not found
+- `400` - Withdrawal already processing
+
+---
+
+### Transfers
+
+#### POST /transfers/internal
+
+Transfer funds between own wallets (same currency).
+
+**Auth Required:** Yes
+
+**Request:**
+```json
+{
+  "fromWalletId": "sender-wallet-uuid",
+  "toWalletId": "recipient-wallet-uuid",
+  "amount": 500,
+  "description": "Move to savings"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "transactionId": "tx-uuid",
+    "reference": "TF-550e8400-e29b-41d4",
+    "amount": 500,
+    "fee": 0,
+    "fromWallet": {
+      "id": "sender-wallet-uuid",
+      "currency": "USDT",
+      "newBalance": "400.00"
+    },
+    "toWallet": {
+      "id": "recipient-wallet-uuid",
+      "currency": "USDT"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2024-01-15T10:30:00Z"
   },
   "error": null
 }
@@ -573,33 +634,88 @@ Withdraw crypto to external wallet.
 
 ---
 
-### Rates
+#### POST /transfers/send
 
-#### GET /rates
+Transfer to another user by email.
 
-Get current exchange rates.
+**Auth Required:** Yes
 
-**Auth Required:** No
+**Request:**
+```json
+{
+  "fromWalletId": "sender-wallet-uuid",
+  "recipientEmail": "jane@example.com",
+  "amount": 5000,
+  "description": "Split bill"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "transactionId": "tx-uuid",
+    "reference": "P2P-550e8400-e29b-41d4",
+    "amount": 5000,
+    "fee": 0,
+    "fromWallet": {
+      "id": "sender-wallet-uuid",
+      "currency": "NGN",
+      "newBalance": "145000.00"
+    },
+    "toWallet": {
+      "id": "recipient-wallet-uuid",
+      "currency": "NGN"
+    },
+    "status": "COMPLETED",
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  "error": null
+}
+```
+
+**Errors:**
+- `400` - Insufficient balance
+- `400` - Cannot transfer to yourself
+- `404` - Recipient not found
+- `404` - Recipient has no matching currency wallet
+
+---
+
+#### GET /transfers/history
+
+Get transfer history.
+
+**Auth Required:** Yes
+
+**Query Parameters:**
+- `limit` (default: 20, max: 100)
+- `offset` (default: 0)
 
 **Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "rates": [
+    "transfers": [
       {
-        "from": "NGN",
-        "to": "USDT",
-        "rate": "0.00062",
-        "updatedAt": "2024-01-15T10:30:00Z"
-      },
-      {
-        "from": "USDT",
-        "to": "NGN",
-        "rate": "1610.00",
-        "updatedAt": "2024-01-15T10:30:00Z"
+        "id": "tx-uuid",
+        "reference": "P2P-550e8400-e29b-41d4",
+        "type": "SENT",
+        "amount": 5000,
+        "fee": 0,
+        "currency": "NGN",
+        "status": "COMPLETED",
+        "description": "Split bill",
+        "counterparty": "jane@example.com",
+        "createdAt": "2024-01-15T10:30:00Z"
       }
-    ]
+    ],
+    "pagination": {
+      "limit": 20,
+      "offset": 0
+    }
   },
   "error": null
 }
@@ -607,22 +723,109 @@ Get current exchange rates.
 
 ---
 
-#### GET /rates/:from/:to
+### Transactions
 
-Get specific exchange rate.
+#### GET /transactions
 
-**Auth Required:** No
+Get all transactions for authenticated user.
+
+**Auth Required:** Yes
+
+**Query Parameters:**
+- `limit` (default: 20, max: 100)
+- `offset` (default: 0)
+- `type` (optional): FUNDING, PAYOUT, TRANSFER, PAYMENT
+- `status` (optional): PENDING, COMPLETED, FAILED, REVERSED
+- `walletId` (optional)
 
 **Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "from": "NGN",
-    "to": "USDT",
-    "rate": "0.00062",
-    "inverseRate": "1612.90",
-    "updatedAt": "2024-01-15T10:30:00Z"
+    "transactions": [
+      {
+        "id": "tx-uuid",
+        "reference": "zorex_abc123",
+        "type": "FUNDING",
+        "status": "COMPLETED",
+        "amount": 10000,
+        "currency": "NGN",
+        "description": "Deposit via bank",
+        "createdAt": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "pagination": {
+      "total": 45,
+      "limit": 20,
+      "offset": 0,
+      "hasMore": true
+    }
+  },
+  "error": null
+}
+```
+
+---
+
+#### GET /transactions/:id
+
+Get transaction details.
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "tx-uuid",
+    "reference": "zorex_abc123",
+    "type": "FUNDING",
+    "status": "COMPLETED",
+    "amount": 10000,
+    "fee": 0,
+    "currency": "NGN",
+    "description": "Deposit via bank",
+    "walletId": "wallet-uuid",
+    "metadata": {
+      "provider": "paystack",
+      "network": "BANK"
+    },
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  "error": null
+}
+```
+
+---
+
+#### GET /transactions/wallet/:walletId
+
+Get transactions for a specific wallet.
+
+**Auth Required:** Yes
+
+**Response (200):** Same format as GET /transactions
+
+---
+
+#### GET /transactions/stats
+
+Get transaction statistics.
+
+**Auth Required:** Yes
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "totalDeposits": 150000,
+    "totalWithdrawals": 50000,
+    "totalTransfersSent": 25000,
+    "totalTransfersReceived": 10000,
+    "transactionCount": 45
   },
   "error": null
 }
@@ -639,8 +842,6 @@ Paystack payment notifications.
 **Request Headers:**
 - `x-paystack-signature` - HMAC SHA512 signature
 
-**Request Body:** Raw JSON from Paystack
-
 **Response (200):**
 ```json
 {
@@ -652,12 +853,10 @@ Paystack payment notifications.
 
 #### POST /webhooks/nowpayments
 
-NOWPayments crypto notifications.
+NOWPayments crypto deposit notifications.
 
 **Request Headers:**
 - `x-nowpayments-sig` - HMAC SHA512 signature
-
-**Request Body:** Raw JSON from NOWPayments
 
 **Response (200):**
 ```json
@@ -668,59 +867,17 @@ NOWPayments crypto notifications.
 
 ---
 
-### User Profile
+#### POST /webhooks/nowpayments/payout
 
-#### GET /profile
+NOWPayments crypto payout notifications.
 
-Get current user profile.
-
-**Auth Required:** Yes
-
-**Response (200):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "user-uuid",
-    "firstName": "John",
-    "lastName": "Doe",
-    "userName": "johndoe",
-    "email": "john@example.com",
-    "phone": "+2348012345678",
-    "role": "USER",
-    "kycStatus": "VERIFIED",
-    "createdAt": "2024-01-15T10:30:00Z"
-  },
-  "error": null
-}
-```
-
----
-
-#### PATCH /profile
-
-Update user profile.
-
-**Auth Required:** Yes
-
-**Request:**
-```json
-{
-  "firstName": "Johnny",
-  "phone": "+2348087654321"
-}
-```
+**Request Headers:**
+- `x-nowpayments-sig` - HMAC SHA512 signature
 
 **Response (200):**
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "user-uuid",
-    "firstName": "Johnny",
-    "phone": "+2348087654321"
-  },
-  "error": null
+  "received": true
 }
 ```
 
@@ -738,25 +895,13 @@ Update user profile.
 | 403 | Forbidden | Action not permitted |
 | 404 | NotFound | Resource doesn't exist |
 | 409 | ConflictError | Resource already exists |
-| 429 | RateLimited | Too many requests |
 | 500 | InternalError | Server error |
-
----
-
-## Rate Limits
-
-| Endpoint Category | Limit |
-|-------------------|-------|
-| Authentication | 10 req/min |
-| Funding/Payouts | 20 req/min |
-| Transfers | 30 req/min |
-| Read operations | 100 req/min |
 
 ---
 
 ## Webhook Security
 
-### Paystack
+### Paystack Signature Verification
 
 ```typescript
 function verifyPaystackSignature(
@@ -772,19 +917,24 @@ function verifyPaystackSignature(
 }
 ```
 
-### NOWPayments
+### NOWPayments Signature Verification
 
 ```typescript
 function verifyNowPaymentsSignature(
-  payload: string,
+  payload: object,
   signature: string,
   secret: string
 ): boolean {
+  // Sort keys alphabetically (required by NOWPayments)
+  const sortedPayload = JSON.stringify(sortObjectKeys(payload));
   const hash = crypto
     .createHmac('sha512', secret)
-    .update(payload)
+    .update(sortedPayload)
     .digest('hex');
-  return hash === signature;
+  return crypto.timingSafeEqual(
+    Buffer.from(hash),
+    Buffer.from(signature)
+  );
 }
 ```
 
@@ -796,12 +946,12 @@ function verifyNowPaymentsSignature(
 class ZorexPayClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string) {
+  constructor(baseUrl: string = 'http://localhost:5500/api') {
     this.baseUrl = baseUrl;
   }
 
   async login(email: string, password: string) {
-    const res = await fetch(`${this.baseUrl}/auth/login`, {
+    const res = await fetch(`${this.baseUrl}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -817,13 +967,41 @@ class ZorexPayClient {
     return res.json();
   }
 
+  async createWallet(currency: string) {
+    const res = await fetch(`${this.baseUrl}/wallets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ currency }),
+    });
+    return res.json();
+  }
+
   async transfer(fromWalletId: string, toWalletId: string, amount: number) {
-    const res = await fetch(`${this.baseUrl}/transfers`, {
+    const res = await fetch(`${this.baseUrl}/transfers/internal`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ fromWalletId, toWalletId, amount }),
     });
+    return res.json();
+  }
+
+  async sendToUser(fromWalletId: string, recipientEmail: string, amount: number) {
+    const res = await fetch(`${this.baseUrl}/transfers/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ fromWalletId, recipientEmail, amount }),
+    });
+    return res.json();
+  }
+
+  async getTransactions(limit = 20, offset = 0) {
+    const res = await fetch(
+      `${this.baseUrl}/transactions?limit=${limit}&offset=${offset}`,
+      { credentials: 'include' }
+    );
     return res.json();
   }
 }

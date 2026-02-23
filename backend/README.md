@@ -1,227 +1,246 @@
 # Zorex Pay
 
-### A Production-Grade Payment Backend (Portfolio Project)
+### A Production-Grade Multi-Currency Payment Backend
 
-Zorex Pay is a backend system designed to model **real-world payment infrastructure** using a **ledger-first architecture**.
+Zorex Pay is a complete backend system for handling **multi-currency payments** using a **ledger-first architecture**. It supports both fiat (NGN via Paystack) and cryptocurrency (BTC, ETH, USDT, BNB, TRX via NOWPayments).
 
-This project demonstrates how to safely handle:
-- multi-currency wallets
-- fiat and blockchain funding paths
-- internal and external transfers
-- auditable financial state transitions
+**Status: ✅ Complete - All core features implemented and tested**
 
-It is intended as a **portfolio project** for mid–senior backend roles and does not process real funds.
+---
+
+## Quick Start
+
+```bash
+# Install dependencies
+pnpm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your credentials
+
+# Generate Prisma client
+pnpm prisma generate
+
+# Run migrations
+pnpm prisma migrate dev
+
+# Start development server
+pnpm dev
+```
+
+Server runs at `http://localhost:5500`
+
+---
+
+## Features
+
+### Authentication
+- ✅ JWT-based auth with token rotation
+- ✅ httpOnly cookies for security
+- ✅ Access tokens (5 min) + Refresh tokens (24 hr)
+- ✅ Token revocation support
+
+### Wallets
+- ✅ Multi-currency wallets (NGN, USDT, BTC, ETH, BNB, TRX)
+- ✅ Automatic NGN wallet on registration
+- ✅ Balance calculation from ledger entries
+- ✅ Network-specific deposit addresses
+
+### Funding
+- ✅ NGN deposits via Paystack
+- ✅ Crypto deposits via NOWPayments
+- ✅ Automatic deposit address generation
+- ✅ Webhook signature verification
+
+### Withdrawals
+- ✅ Crypto withdrawals to external wallets
+- ✅ Fee estimation endpoints
+- ✅ Withdrawal cancellation
+- ✅ Payout webhook handling
+
+### Transfers
+- ✅ Internal transfers (between own wallets)
+- ✅ P2P transfers (to other users)
+- ✅ Transfer history
+
+### Transactions
+- ✅ Full transaction history
+- ✅ Filtering by type/status/wallet
+- ✅ Pagination support
+- ✅ Transaction statistics
+
+---
+
+## API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/register | Create account |
+| POST | /api/login | Login |
+| POST | /api/refresh | Refresh token |
+| POST | /api/logout | Logout |
+
+### Wallets
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/wallets | List wallets |
+| POST | /api/wallets | Create wallet |
+| GET | /api/wallets/:id | Get wallet |
+| GET | /api/wallets/:id/balance | Get balance |
+| GET | /api/wallets/:id/deposit-address | Get deposit address |
+| GET | /api/wallets/networks/:currency | Get networks |
+
+### Funding & Withdrawals
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/fund-bank | Fund via Paystack |
+| POST | /api/withdraw/crypto | Withdraw crypto |
+| POST | /api/withdraw/crypto/estimate | Get fee estimate |
+| GET | /api/withdraw/crypto/pending | Pending withdrawals |
+
+### Transfers
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/transfers/internal | Internal transfer |
+| POST | /api/transfers/send | Send to user |
+| GET | /api/transfers/history | Transfer history |
+
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/transactions | List transactions |
+| GET | /api/transactions/:id | Get transaction |
+| GET | /api/transactions/stats | Get statistics |
 
 ---
 
 ## Design Principles
 
-The system is built around a few non-negotiable rules:
+### 1. Ledger-First Architecture
 
-- Wallet balances are **derived**, never stored
-- All financial changes are **ledger-backed**
-- Transactions are **atomic and immutable**
-- Every operation is **auditable**
-- Failure is expected and explicitly handled
+**Balances are NEVER stored.** They are always calculated:
+
+```
+Balance = SUM(CREDIT entries) - SUM(DEBIT entries)
+```
+
+### 2. Double-Entry Bookkeeping
+
+Every financial operation creates balanced entries:
+- Funding: CREDIT user, DEBIT settlement
+- Withdrawal: DEBIT user, CREDIT settlement
+- Transfer: DEBIT sender, CREDIT receiver
+
+### 3. Atomic Transactions
+
+All financial writes use database transactions to ensure consistency:
+
+```typescript
+await prisma.$transaction(async (tx) => {
+  // Create transaction record
+  // Create ledger entries
+  // All succeed or all fail
+});
+```
+
+### 4. Idempotency
+
+All operations use unique references to prevent duplicates.
 
 ---
 
-## Supported Assets & Networks
+## Supported Assets
 
 ### Currencies
-Defined in `currency_type`:
-
-- NGN
-- USDT
-- BTC
-- ETH
-- BNB
-- TRX
+- NGN (Nigerian Naira)
+- USDT (Tether)
+- BTC (Bitcoin)
+- ETH (Ethereum)
+- BNB (Binance Coin)
+- TRX (Tron)
 
 ### Networks
-Defined in `network_type`:
-
-- BANK
-- TRC20
-- BEP20
-- **POLYGON**
-- ERC20
-- BTC
-
-A currency and its network are treated as **separate concerns**.  
-For example, `USDT` on `ERC20` and `USDT` on `TRC20` are distinct funding paths.
+| Currency | Networks |
+|----------|----------|
+| NGN | BANK |
+| USDT | TRC20, BEP20, ERC20, POLYGON |
+| BTC | BTC |
+| ETH | ERC20 |
+| BNB | BEP20 |
+| TRX | TRC20 |
 
 ---
 
-## User & Identity Model
+## Environment Variables
 
-### Users
+```env
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/zorex_pay
 
-Users are uniquely identified and authenticated using JWT-based authentication.
+# JWT
+JWT_ACCESS_SECRET=your-access-secret
+JWT_REFRESH_SECRET=your-refresh-secret
 
-- Short-lived access tokens (5 minutes)
-- Refresh tokens with revocation support
-- Optional KYC state:
-  - UNVERIFIED
-  - PENDING
-  - VERIFIED
+# Paystack
+PAYSTACK_SECRET_KEY=sk_test_xxxxx
 
-A user may own multiple wallets, but only **one wallet per currency**.
+# NOWPayments
+NOWPAYMENTS_API_KEY=your-api-key
+NOWPAYMENTS_IPN_SECRET=your-ipn-secret
 
----
-
-## Wallet Model
-
-Wallets represent user-owned containers for funds.
-
-### Key Rules
-
-- One wallet per user per currency
-- Wallets have a lifecycle:
-  - ACTIVE
-  - FROZEN
-- Wallets do **not** store balances
-
-Wallets act as **containers**, not accounting sources of truth.
+# System
+SYSTEM_SETTLEMENT_LEDGER_ID=uuid
+SYSTEM_FEE_LEDGER_ID=uuid
+API_URL=http://localhost:5500
+PORT=5500
+```
 
 ---
 
-## Payment Accounts (Funding & Withdrawal Endpoints)
+## Project Structure
 
-Each wallet may have multiple associated payment accounts, such as:
-
-- Bank account numbers
-- Crypto addresses
-- Provider-managed identifiers
-
-This design allows:
-- multiple funding rails per wallet
-- abstraction over payment providers (e.g. Paystack, Flutterwave, blockchain RPCs)
-
----
-
-## Ledger Architecture
-
-### Ledger Accounts
-
-Ledger accounts back wallets and represent where balances are actually tracked.
-
-Ledger accounts are categorized into logical types:
-- USER
-- SYSTEM
-- FEE
-- SETTLEMENT
-
-This separation enables proper clearing, fee collection, and reconciliation.
+```
+backend/
+├── controllers/     # HTTP handlers
+├── services/        # Business logic
+├── repository/      # Data access
+├── routes/          # API routes
+├── middleware/      # Auth, errors
+├── errors/          # Domain errors
+├── prisma/          # Database schema
+├── docs/            # Documentation
+│   ├── ARCHITECTURE.md
+│   ├── API.md
+│   ├── DATABASE.md
+│   ├── FLOWS.md
+│   ├── IMPLEMENTATION.md
+│   └── SECURITY.md
+└── index.ts         # Entry point
+```
 
 ---
 
-### Ledger Entries
+## Documentation
 
-Ledger entries represent **actual balance movement**.
-
-- CREDIT increases balance
-- DEBIT decreases balance
-- Entries are immutable
-- Entries never exist without a transaction
-
-There is no direct balance mutation anywhere in the system.
-
----
-
-## Transactions
-
-Transactions are the **atomic unit of financial change**.
-
-### Transaction Types
-
-- FUNDING  
-  External → Wallet
-- PAYOUT  
-  Wallet → External
-- TRANSFER  
-  Wallet → Wallet
-- PAYMENT  
-  Wallet → Service / Merchant
-
-### Transaction Statuses
-
-- PENDING
-- COMPLETED
-- FAILED
-- REVERSED
-
-Every transaction:
-- has a globally unique reference
-- produces one or more ledger entries
-- is safe to retry (idempotent)
-
----
-
-## Funds Flow Examples
-
-### Internal Transfer
-
-1. Create transaction
-2. Debit sender ledger account
-3. Credit recipient ledger account
-4. Mark transaction as completed
-
----
-
-### External Deposit
-
-1. Wait for bank callback or blockchain confirmation
-2. Create funding transaction
-3. Credit user ledger account
-
----
-
-### Withdrawal
-
-1. Lock funds via a pending transaction
-2. Execute external payout
-3. Finalize ledger on success
-
----
-
-## Failure Handling & Idempotency
-
-- All financial write operations are idempotent
-- Duplicate requests reuse the same transaction reference
-- Partial failures do not corrupt balances
-- Reversals are modeled explicitly via `REVERSED` status
-
----
-
-## Security Considerations
-
-- Short-lived access tokens
-- Refresh token rotation and revocation
-- Wallet freezing prevents fund movement
-- No trust in client-provided balances or totals
-- Ledger-only accounting model
+- [Architecture](docs/ARCHITECTURE.md) - System design and components
+- [API Specification](docs/API.md) - Full endpoint documentation
+- [Database Schema](docs/DATABASE.md) - Tables and relationships
+- [Transaction Flows](docs/FLOWS.md) - User journeys
+- [Implementation](docs/IMPLEMENTATION.md) - Current status
+- [Security](docs/SECURITY.md) - Auth and threat model
 
 ---
 
 ## Technology Stack
 
-- Node.js + TypeScript
-- PostgreSQL
-- Prisma ORM
-- JWT Authentication
-- Blockchain SDKs (Ethers, Web3, TronWeb)
-
----
-
-## Why This Design
-
-This project intentionally avoids:
-- storing wallet balances
-- hidden side effects
-- demo-style shortcuts
-
-The schema and logic aim to reflect how **real payment systems** are designed under failure, retries, and audits.
+- **Runtime:** Node.js + TypeScript
+- **Framework:** Express.js
+- **Database:** PostgreSQL
+- **ORM:** Prisma
+- **Auth:** JWT (httpOnly cookies)
+- **Validation:** Zod
+- **Payments:** Paystack, NOWPayments
 
 ---
 
