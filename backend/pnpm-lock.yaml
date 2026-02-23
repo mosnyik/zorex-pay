@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@nowpaymentsio/nowpayments-api-js':
+        specifier: ^1.0.5
+        version: 1.0.5
       '@prisma/adapter-pg':
         specifier: ^7.1.0
         version: 7.1.0
@@ -295,6 +298,9 @@ packages:
     resolution: {integrity: sha512-JwqeCQ1U3fvccttHZq7Tk0m/TMC6WcFAQZdukypW3AzlJYKYTGNVd1ANU2GuhKnv4UQuOFj3oAl0LLG/gxFN1w==}
     engines: {node: '>=16'}
 
+  '@nowpaymentsio/nowpayments-api-js@1.0.5':
+    resolution: {integrity: sha512-B9RTq8gDrdV0ccakHWRccxUow1N7xGTz+tgjnKXhL5T/T2dah96Otc5FS1GTWzwtdFmlMgntKQnWmQ5kss4qrQ==}
+
   '@prisma/adapter-pg@7.1.0':
     resolution: {integrity: sha512-DSAnUwkKfX4bUzhkrjGN4IBQzwg0nvFw2W17H0Oa532I5w9nLtTJ9mAEGDs1nUBEGRAsa0c7qsf8CSgfJ4DsBQ==}
 
@@ -434,6 +440,9 @@ packages:
   aws-ssl-profiles@1.1.2:
     resolution: {integrity: sha512-NZKeq9AfyQvEeNlN0zSYAaWrmBffJh3IELMZfRpJVWgrpEbtEpnjvzqBPf+mxoI287JohRDoa+/nsfqqiZmF6g==}
     engines: {node: '>= 6.0.0'}
+
+  axios@0.21.4:
+    resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
 
   axios@1.13.2:
     resolution: {integrity: sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==}
@@ -1358,6 +1367,12 @@ snapshots:
       chevrotain: 10.5.0
       lilconfig: 2.1.0
 
+  '@nowpaymentsio/nowpayments-api-js@1.0.5':
+    dependencies:
+      axios: 0.21.4
+    transitivePeerDependencies:
+      - debug
+
   '@prisma/adapter-pg@7.1.0':
     dependencies:
       '@prisma/driver-adapter-utils': 7.1.0
@@ -1538,6 +1553,12 @@ snapshots:
   asynckit@0.4.0: {}
 
   aws-ssl-profiles@1.1.2: {}
+
+  axios@0.21.4:
+    dependencies:
+      follow-redirects: 1.15.11
+    transitivePeerDependencies:
+      - debug
 
   axios@1.13.2:
     dependencies:

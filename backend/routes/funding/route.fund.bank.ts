@@ -1,8 +1,9 @@
 import express, { Router } from "express";
 import { fundBankWalletController } from "../../controllers/funding/funding.bank";
+import { requireAuth } from "../../middleware/request-auth";
 
-const fundBank: Router = express();
+const fundBank: Router = express.Router();
 
-fundBank.post("/", fundBankWalletController);
+fundBank.post("/", requireAuth, fundBankWalletController);
 
 export default fundBank;

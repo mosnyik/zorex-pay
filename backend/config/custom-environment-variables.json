@@ -1,4 +1,18 @@
 {
-  "name": "Zorex Pay",
-  "jwtPrivateKey": "zorex_pay_jwtPrivateKey"
+  "jwtPrivateKey": "JWT_ACCESS_SECRET",
+  "jwtRefreshKey": "JWT_REFRESH_SECRET",
+  "logLevel": "LOG_LEVEL",
+  "paystack": {
+    "secretKey": "PAYSTACK_SECRET_KEY",
+    "publicKey": "PAYSTACK_PUBLIC_KEY"
+  },
+  "nowpayments": {
+    "apiKey": "NOWPAYMENTS_API_KEY",
+    "ipnSecret": "NOWPAYMENTS_IPN_SECRET",
+    "sandbox": "NOWPAYMENTS_SANDBOX"
+  },
+  "api": {
+    "url": "API_URL",
+    "frontendUrl": "FRONTEND_URL"
+  }
 }

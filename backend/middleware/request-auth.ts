@@ -1,30 +1,82 @@
 import type { NextFunction, Request, Response } from "express";
-import { decode, verify } from "jsonwebtoken";
+import authService from "../services/auth/auth.service";
+import type { JwtPayload } from "jsonwebtoken";
 
-export async function requireAuth(
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload & { id: string; role?: string };
+    }
+  }
+}
+
+/**
+ * Middleware to verify JWT access token from cookies
+ * Attaches decoded user payload to req.user
+ */
+export function requireAuth(
   req: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) {
-  const authHeader = req.get("authorization");
+  const token = req.cookies?.accessToken;
 
-  if (!authHeader) {
-    return res.status(400).json({ message: "Bad request" });
-  }
-
-  const [type, token] = authHeader.split(" ");
-
-  if (type !== "authorization" || !token) {
-    return res.status(401).json({ message: "Unauthorized" });
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      data: null,
+      error: "Authentication required",
+    });
   }
 
   try {
-    const user = verify(token, process.env.JWT_SECRET!);
-
-
-    (req as any).user = user;
+    const decoded = authService.verifyAccessToken(token) as JwtPayload & { id: string };
+    req.user = decoded;
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Unauthorized" });
+  } catch (err: any) {
+    // Check if token expired vs invalid
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: "Token expired",
+        code: "TOKEN_EXPIRED",
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      data: null,
+      error: "Invalid token",
+    });
   }
+}
+
+/**
+ * Middleware to check user role
+ * Must be used after requireAuth
+ */
+export function requireRole(...allowedRoles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        data: null,
+        error: "Authentication required",
+      });
+    }
+
+    const userRole = req.user.role || "USER";
+
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        data: null,
+        error: "Insufficient permissions",
+      });
+    }
+
+    next();
+  };
 }

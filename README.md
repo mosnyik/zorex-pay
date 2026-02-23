@@ -60,12 +60,12 @@ A **production-grade multi-currency payment platform** supporting fiat (NGN) and
 
 | Document | Description |
 |----------|-------------|
-| [Architecture](./docs/ARCHITECTURE.md) | System design, components, principles |
-| [Database](./docs/DATABASE.md) | Schema, tables, relationships, queries |
-| [API Specification](./docs/API.md) | Complete REST API reference |
-| [Business Flows](./docs/FLOWS.md) | User journeys, transaction flows |
-| [Security Model](./docs/SECURITY.md) | Auth, threats, mitigations |
-| [Implementation Plan](./docs/IMPLEMENTATION.md) | Status, phases, code examples |
+| [Architecture](./backend/docs/ARCHITECTURE.md) | System design, components, principles |
+| [Database](./backend/docs/DATABASE.md) | Schema, tables, relationships, queries |
+| [API Specification](./backend/docs/API.md) | Complete REST API reference |
+| [Business Flows](./backend/docs/FLOWS.md) | User journeys, transaction flows |
+| [Security Model](./backend/docs/SECURITY.md) | Auth, threats, mitigations |
+| [Implementation Plan](./backend/docs/IMPLEMENTATION.md) | Status, phases, code examples |
 
 ---
 
@@ -181,17 +181,17 @@ zorex-pay/
 │   ├── prisma/           # Database schema
 │   ├── errors/           # Domain errors
 │   ├── validators/       # Zod schemas
-│   └── models/           # TypeScript types
+│   ├── models/           # TypeScript types
+│   └── docs/             # Documentation
+│       ├── ARCHITECTURE.md
+│       ├── DATABASE.md
+│       ├── API.md
+│       ├── FLOWS.md
+│       ├── SECURITY.md
+│       └── IMPLEMENTATION.md
 ├── frontend/
 │   ├── app/              # Next.js app router
 │   └── components/       # React components
-├── docs/                 # Documentation
-│   ├── ARCHITECTURE.md
-│   ├── DATABASE.md
-│   ├── API.md
-│   ├── FLOWS.md
-│   ├── SECURITY.md
-│   └── IMPLEMENTATION.md
 └── README.md
 ```
 

@@ -6,6 +6,7 @@ export interface userDomainDto {
   email?: string;
   phone?: string;
   passWordHash?: string;
+  role?: "USER" | "MERCHANT" | "ADMIN";
   kycStatus?: "unverified" | "pending" | "verified";
   createdAt?: Date;
 }
