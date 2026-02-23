@@ -13,6 +13,7 @@ import logout from "./routes/auth/route.logout";
 import fundBank from "./routes/funding/route.fund.bank";
 import withdrawCrypto from "./routes/funding/route.withdraw.crypto";
 import transfers from "./routes/transfer/route.transfer";
+import transactions from "./routes/transactions/route.transactions";
 import wallets from "./routes/wallets/route.wallets";
 import paystack from "./routes/webhooks/route.paystack";
 import nowpayments from "./routes/webhooks/route.nowpayments";
@@ -40,6 +41,7 @@ app.use("/api/logout", logout);
 app.use("/api/fund-bank", fundBank);
 app.use("/api/withdraw/crypto", withdrawCrypto);
 app.use("/api/transfers", transfers);
+app.use("/api/transactions", transactions);
 app.use("/api/wallets", wallets);
 
 // Webhook routes (special - need raw body for signature verification)
