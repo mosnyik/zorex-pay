@@ -11,8 +11,10 @@ import refresh from "./routes/auth/route.refresh";
 import revoke from "./routes/auth/route.revoke";
 import logout from "./routes/auth/route.logout";
 import fundBank from "./routes/funding/route.fund.bank";
+import withdrawCrypto from "./routes/funding/route.withdraw.crypto";
 import wallets from "./routes/wallets/route.wallets";
 import paystack from "./routes/webhooks/route.paystack";
+import nowpayments from "./routes/webhooks/route.nowpayments";
 
 const app = express();
 
@@ -35,10 +37,12 @@ app.use("/api/logout", logout);
 
 // Protected routes
 app.use("/api/fund-bank", fundBank);
+app.use("/api/withdraw/crypto", withdrawCrypto);
 app.use("/api/wallets", wallets);
 
 // Webhook routes (special - need raw body for signature verification)
 app.use("/api/webhooks", paystack);
+app.use("/api/webhooks", nowpayments);
 
 // Error handler (must be last)
 app.use(error);
