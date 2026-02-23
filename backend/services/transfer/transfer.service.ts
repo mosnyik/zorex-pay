@@ -179,12 +179,12 @@ export const TransferService = {
       throw new ValidationError("Transfer amount must be positive");
     }
 
-    // Get sender's wallet
+    // Get sender's wallet with user info
     const fromWallet = await prisma.wallets.findFirst({
       where: { id: fromWalletId, user_id: userId },
       include: {
         ledger: { include: { entries: true } },
-        user: true,
+        users: true,
       },
     });
 
@@ -193,7 +193,7 @@ export const TransferService = {
     }
 
     // Cannot send to self
-    if (fromWallet.user.email.toLowerCase() === recipientEmail.toLowerCase()) {
+    if (fromWallet.users.email.toLowerCase() === recipientEmail.toLowerCase()) {
       throw new ValidationError("Cannot transfer to yourself. Use internal transfer instead.");
     }
 
